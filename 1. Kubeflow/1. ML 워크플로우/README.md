@@ -56,7 +56,22 @@ ML 워크플로우 툴들은 __파이프라인 툴(Pipeline Tool)__ 이란 형�
 
 -> 이러한 오픈소스로는 Apache의 __Airflow__ 가 대표적이다.
 
+### Airflow
+
 - Airflow 컴포넌트 : __덱(DAG), 트리(Tree), 간트(Gantt), 그래프(Graph)등 다양한 컴포넌트__ 지원
 
 - __REST API, 쿠버네티스__ 지원, 좋은 확장성
+-> 워크플로우를 구성하기에 부족함 x
+
+- Airbnb, Slack, Backsalad등에서 사용
+
+### argo workflow
+
+- 나중에 설명할 kubeflow 파이프라인의 전신이 argo workflow가 있다.
+
+- argoproj라는 프로젝트로 쿠버네티스 위에서 실행되는 오픈소스이다.
+
+- 각 테스크가 __컨테이너 기반__ 이기 때문에 컨테이나가 가지는 장점과 쿠버네티스의 리소스 관리의 장점을 가진 워크플로우 툴이다.
+
+- Google, 어도비, 알리바바 클라우드등에서 사용
 
