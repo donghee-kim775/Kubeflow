@@ -1,145 +1,62 @@
-# 개요
+# ML 워크플로우
 
-1장에서는 mysite프로젝트를 생성했다. 프로젝트에는 장고가 제공하는 기본 앱과 개발자가 직접 만든 앱이 포함될 수 있다.
-장고에서 말하는 '앱'은 안드로이드 앱과 성격이 다르다
-장고의 앱이란 무엇일까? 우리의 파이보 서비스에 필요한 pybo앱을 만들어보며 알아보자.
+## 개념
 
----
+> 머신러닝 섹션에서 데이터를 분석/가공하고, 학습시켜 모델을 최적화시키며 그 모델들을 서버에 배포시켜 예측을 하는 등 일련의 과정
 
-# pybo 앱 생성하기
+ML워크 플로우는 크게 __모델 실험 단계(Experiment Phase)__ 와 __모델 생산 단계(Production Phase)__ 로 나누어 진다.
 
-~~~
-(django_env) C:~~\Project\mysite> django-admin startapp pybo
-~~~
+![image](https://user-images.githubusercontent.com/54052704/223021397-6644e1f8-dc26-40df-9dc5-c4fe21564f76.png)
 
-### pybo 앱 구성
+### Experimental phase
 
-C:~~\Project\mysite\pybo
-- migrations\
-  - __init__.py  
-- __intit__.py
-- admin.py
-- apps
-- models
-- tests
-- views
+> 이 단계는 주어진 문제를 해결하기 위해 사용될 모델을 실험하는 단계
 
----
+1. 문제 파악 및 데이터 수집 및 분석
 
-아마 1장에서 봤던 개발 서버를 구동하게 되면 'Page not found(404)'라는 오류 페이지가 보일 것이다. 이 오류는 HTTP 오류코드 중 하나로 사용자가 요청한 페이지를 찾을 수 없는 경우 발생하는 오류이다.
+2. ML 알고리즘 선택 및 모델 코딩
 
-이 오류는 왜 발생했을까?
+3. 데이터 및 모델 교육 실험
 
-장고는 사용자가 웹 브라우저에서 /pybo/라는 페이지를 요청하면 해당 페이지를 가져오는 URL 매핑이 있는지 config/urls.py파일을 찾아본다.
-하지만 우리는 /pybo/ 페이지에 해당하는 URL매핑을 장고에 등록하지 않아서 그렇다.
-그래서 장고는 /pybo/ 페이지를 찾을 수 없다고 메시지를 보낸 것이다.
+4. 모델 하이퍼파라미터 튜닝
 
----
+-> 이 과정은 최고수준이 나오기 전까지 계속 반복됩니다.
 
-## config/urls.py 수정하기
+### Production  phase
 
-~~~ python
-from django.contrib import admin
-from django.urls import path
-from pybo import views # 추가됨
+> 이 단계는 실험된 모델을 학습/배포하는 단계
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('pybo/', views.index), # 추가됨
-]
-~~~
-이렇게 추가하는 행위를 __'URL 매핑을 추가한다'__ 라고 말할 것이다.
+1. 데이터 변환
 
-config/urls.py은 페이지 요청시 가장 먼저 호출되며, 요청 URL과 뷰함수를 1:1로 연결해줌
+2. 모델 학습
 
-__pybo/ URL이 요청되면 views.index를 호출하라는 매핑을 urlpatterns에 추가하였다.__
-__views.index는 view.py파일의 index 함수를 의미한다.__
+3. 온라인/배치 예측을 위한 모델 제공
 
-웹 브라우저 주소창에 localhost:8000/pybo라고 입력하면 장고가 자동으로 localhost:8000/pybo/와 같이 /를 붙여준다.
+4. 모델 성능 모니터링
 
-그럼 다시 한번 /pybo/에 접속하면 '사이트를 연결할 수 없음'라고 오류가 뜬다.
-
-그 이유는 URL 매핑에 추가한 뷰 함수 views.index가 없기 때문이다.
+-> 이 과정도 최고수준이 나오기 전까지 계속 반복됩니다.
 
 ---
+## ML 워크 플로우 툴
 
-## views.py 수정하기
+![image](https://user-images.githubusercontent.com/54052704/223029023-1b149b3d-cbf5-4d0e-83fc-9d573d35ca6a.png)
 
-pybo/views.py 파일에 index함수를 추가해보자.
 
-~~~python
-from django.http import HttpResponse
+ML 워크플로우 툴들은 __파이프라인 툴(Pipeline Tool)__ 이란 형태를 구성된다.
 
-def index(request):
-  return HttpResponse("안녕하세요 pybo에 오신것을 환영합니다.")
-~~~
+> __파이프라인이란?__ 하나의 테스크 결과가 다음 테스크로 이어지는 연결구조를 말한다.
 
-return문에 사용된 HttpResponse는 페이지 요청에 대한 응답을 할 때 사용하는 장고 클래스이다.
+이 연결구조는 각각의 단계가 독립적이며 연결 구조에 따라 병렬적 수행도 가능하기 때문에 효율적인 구성을 만들 수 있다.
 
-여기서 HttpResponse에 "안녕하세요 pybo에 오신것을 환영합니다."라는 문자열을 전달하여 이 문자열이 웹 브라우저에 그대로 출력되도록 만들었다.
+각각의 워크플로우 단계들은 하나의 테스크로 정의할 수 있다.
 
-index 함수의 매개변수 request는 HTTP요청 객체이다.
+즉, 각각의 테스크를 순서대로 연결하여 수행하는 것이 하나의 Workflow가 되는 것이다.
 
-이후 다시 접속하면 웹브라우저에 "안녕하세요 pybo에 오신것을 환영합니다."라는 문자열이 출력된다.
+이것은 테스크의 수행결과에 따라 재처리나 분기 등이 가능하다면 수동으로 작업하는 것보다 훨씬 효율적이다.
 
----
+-> 이러한 오픈소스로는 Apache의 __Airflow__ 가 대표적이다.
 
-# URL 분리하기
+- Airflow 컴포넌트 : __덱(DAG), 트리(Tree), 간트(Gantt), 그래프(Graph)등 다양한 컴포넌트__ 지원
 
-config/urls.py 파일을 다시 한번 살펴보자.
+- __REST API, 쿠버네티스__ 지원, 좋은 확장성
 
-아까 얘기했듯 pybo 앱 관련 파일은 대부분 pybo 디렉터리에 있다. 하지만 config/urls.py 파일은 pybo 디렉터리에 없다.
-
-그러므로 pybo앱에 URL 매핑을 추가하려면 pybo 디렉터리가 아닌 config 디렉터리에 있는 urls.py 파일을 수정해야 한다.
-
--> 이 방법은 pybo앱에서만 사용하는 URL 매핑을 config/urls.py 파일에 계속 추가하는 것은 좋은 방법이 아니다.
-
-우선 config/urls.py를 다음처럼 수정해보자.
-
-## config/urls.py 수정
-
-~~~python
-from django.contrib import admin
-from django.urls import path, include # include 추가
-# from pybo import views 더 이상 필요하지 않으므로 삭제
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('pybo/', include('pybo.urls')), # 수정한 곳
-]
-~~~
-
-__path('pybo/', include('pybo.urls'))의 의미는 pybo/로 시작하는 페이지를 요청하면 이제 pybo/urls.py 파일의 매핑 정보를 읽어서 처리하라는 의미이다.__
-
-따라서 이제 pybo/question/create, pybo/answer/create등의 pybo/로 시작하는 URL을 추가해야할 때 config/urls.py 파일을 수정할 필요 없이 pybo/urls.py 파일만 수정하면 된다.
-
-그렇다면 이제 pybo/urls.py파일을 생성해야한다.
-
-## pybo/urls.py 생성
-
-~~~python
-from django.urls import path
-from . import views
-
-urlpatterns = [
-  path('',views.index),
-]
-~~~
-
-config/urls.py 파일에 설정했던 내용과 별반 차이 없다.
-
-다만 path('', views.index)처럼 pybo/가 생략된 ''이 사용되었다.
-
-이유는?
-
-config/urls.py 파일에서 이미 pybo/로 시작하는 URL이 pybo/urls.py 파일과 먼저 매핑되었기 때문이다.
-
-즉, pybo/ URL은 다음처럼 config/urls.py파일에 매핑된 pybo/와 pybo/urls.py 파일에 매핑된 ''이 더해져 pybo/가 된다.
-
----
-
-config/urls.py(pybo/) + pybo/urls.py('') = 최종 URL('pybo/')
-
-config/urls.py(pybo/) + pybo/urls.py('question/create/') = 최종 URL('pybo/question/create/')
-
-이제 다시 http://localhost:8000/pybo 페이지를 요청하면 URL 분리후에도 동일한 결과가 나타난 것을 확인할 수 있다.
